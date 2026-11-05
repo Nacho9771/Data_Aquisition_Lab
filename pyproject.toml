@@ -1,0 +1,17 @@
+[project]
+name = "data-aquisition-blog"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Nacho971", email = "cgordon0@byu.edu" }
+]
+requires-python = ">=3.14"
+dependencies = []
+
+[project.scripts]
+data-aquisition-blog = "data_aquisition_blog:main"
+
+[build-system]
+requires = ["uv_build>=0.12.12,<0.13.0"]
+build-backend = "uv_build"
