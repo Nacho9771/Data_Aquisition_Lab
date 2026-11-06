@@ -8,3 +8,16 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Local Canvas credentials and setup
+.canvas-local/
+
+# Credentials, private API responses, and local caches
+.env
+.env.*
+!.env.example
+data/raw/
+.cache/
+.project-cache/
+.quarto/
+stat386_project.zip

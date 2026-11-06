@@ -1,0 +1,93 @@
+---
+title: "Senior data careers across 152 companies"
+subtitle: "Curating Greenhouse postings with a five-role cap per employer"
+author: "Connor Gordon"
+date: "2026-11-05"
+format:
+  html:
+    toc: true
+    embed-resources: true
+    theme: default
+    mainfont: system-ui
+    code-copy: true
+---
+
+::: callout-note
+## Private review copy
+
+These are real results from a fresh collection. This copy has not been published, and the linked repository still needs the reviewed local changes uploaded.
+:::
+
+## What skills should I build toward?
+
+As a Statistics: Data Science student at BYU, I want to understand how the tools I learn connect to the kinds of jobs I might pursue later. Looking at a few large employers can give a narrow picture, especially when one company advertises many similar positions. I wanted a broader view of senior technical and analytical work.
+
+My question was: **Which skills appear in senior AI, machine learning, data science, and analytics roles across many companies?** I also wanted to explore advertised pay, if the postings provided enough comparable information. The goal was a useful learning roadmap, rather than a claim that one technology guarantees a job or salary.
+
+## More companies, fewer roles from each
+
+I used the [public Greenhouse Job Board API](https://docs.greenhouse.io/job-board.html) and a [public-domain employer directory](https://github.com/moonie0201/ats-directory) to identify 382 candidate boards. The directory supplied board identifiers, not the job data. I freshly requested the job listings from Greenhouse, where public job reads require no API key.
+
+To prevent one employer from overwhelming the dataset, I set a **hard limit of five full role descriptions per company**. The script first reads each board's title list without requesting description content. It filters for relevant titles and explicit seniority, removes repeated internal role IDs, then selects across role families before collecting extra roles from a family. A fixed seed of 386 makes selection repeatable for the same title list. Normalized employer names share the five-description allowance even across different boards.
+
+The basic API workflow is straightforward:
+
+``` python
+import requests
+
+base = "https://boards-api.greenhouse.io/v1/boards/abacusinsights/jobs"
+listing = requests.get(base, timeout=30)
+listing.raise_for_status()
+titles = listing.json()["jobs"]
+
+# Filter and choose at most five distinct senior roles before requesting details.
+```
+
+“Senior” means Senior/Sr., Staff, Principal, Lead, Distinguished, or relevant management/leadership wording in the title. Internships, junior positions, and titles without a clear senior marker are excluded. Commercial AI positions such as sales partnerships and product management are also excluded. I do not infer seniority from salary or assume that an unmarked title is senior.
+
+Of 382 boards, 374 returned title lists and eight were unavailable. The lists contained 23,951 post entries; these were metadata inspected for selection, not 23,951 collected descriptions. I retrieved **418 descriptions** under the cap. Final title/content and language checks retained **380 roles from 152 companies**, with **42 variables**. Sixty-two companies contribute one role, while 33 contribute five; the remaining 57 contribute two to four. Every retained role has a description.
+
+## Adjacent careers are part of the picture
+
+The role rules include data engineering, analytics engineering/BI, business and product analytics, and applied or quantitative science. Research-scientist titles need machine-learning, deep-learning, or data-science evidence in the description. These are related career paths with different skill mixes, so I keep them separate.
+
+| Role family                    | Sampled roles |
+|--------------------------------|--------------:|
+| Machine learning / AI          |           170 |
+| Data engineering               |            68 |
+| Data / business analytics      |            53 |
+| Data science                   |            49 |
+| Applied / quantitative science |            22 |
+| Analytics engineering / BI     |            18 |
+
+Frequent exact titles include **Senior Machine Learning Engineer** (13 roles across 12 companies), **Senior Data Engineer** (12 across 12), and **Senior Data Scientist** (11 across nine). Senior Business Analyst, Staff Data Analyst, Lead Data Engineer, and Senior Analytics Engineer also appear. The seniority breakdown is 193 Senior, 111 Staff/Principal/Lead, 50 management, and 26 leadership roles.
+
+## Python and SQL remain useful foundations
+
+After decoding HTML, I used word-boundary patterns to detect skill mentions. Special handling avoids counting `R&D`, `R$`, or an identifier like `R-00196320` as the R language. A mention can be required, preferred, or part of company boilerplate; the indicators do not distinguish those cases.
+
+**Python appeared in 248 roles (65.3%)**, cloud terminology or platforms in 208 (54.7%), SQL in 164 (43.2%), and AWS in 117 (30.8%). Cloud is a broad indicator that includes AWS, Azure, GCP, or the word “cloud,” so those categories overlap.
+
+![Skill frequencies comparing equal weight for each sampled role with equal weight for each company. Python, cloud, and SQL lead both summaries.](output/skill_frequency.png)
+
+A five-role cap limits concentration but does not make company contributions identical. I therefore also average the skill-mention rate within each company, then give those 152 company averages equal weight. Python becomes **63.9%**, cloud **57.6%**, and SQL **41.2%**. Their ordering stays the same. This is an average within-company rate, not the percentage of employers requiring the skill.
+
+The role-family comparisons are more informative than one overall ranking. SQL appears in **94.4% of analytics engineering/BI roles**, 77.6% of data science roles, and 62.3% of data/business analytics roles. Cloud appears in 89.7% of data engineering roles. PyTorch appears in 15.3% of the AI/ML group, compared with 8.2% of data science roles. For me, that suggests pairing a common foundation with tools tied to a target career rather than treating every data job as the same job.
+
+## Why I stopped short of salary premiums
+
+I retained pay ranges only when the text explicitly indicated USD and an annual salary/pay period. Hourly wages were not converted, and an implausible annual range below \$1,000 was treated as unusable. One posting actually supplied \$1–\$2, showing why a numeric field still needs validation. Multiple qualifying regional ranges become a lowest-to-highest envelope for the retained description.
+
+Only **15 roles from seven companies** passed these checks. Their median range midpoint was **\$245,000**, with a middle 50% from \$166,000 to \$317,000. These are advertised range summaries, not actual earnings or typical senior-market pay.
+
+![Salary coverage by role family, showing that only a small portion of sampled roles had extractable annual USD ranges.](output/salary_coverage.png)
+
+No tracked skill had at least ten usable salary observations in both comparison groups. I therefore omitted the salary-by-skill chart. Reporting a convincing-looking “Python premium” from those small groups would overstate what this dataset supports. Missing comparable pay also does not mean the employer omitted pay entirely: other currencies, unstated periods, and unrecognized formats remain outside this analysis.
+
+## What this sample can tell me
+
+I used documented public endpoints, spaced requests, stopped on rate limits, and cached responses. No applicant information or private API was accessed. The derived CSV omits full descriptions and retains source links and retrieval times. Public access does not grant an unrestricted license to republish advertisements, so raw responses remain local and dataset sharing still needs review.
+
+The directory is incomplete and its Greenhouse cohort is alphabetically limited. All returned locations were eligible, and the title rules deliberately exclude unclear seniority. The cap and equal-company check reduce concentration; they do not remove industry, platform, geographic, or selection bias.
+
+My next step is to build stronger Python/SQL foundations and explore cloud and engineering tools relevant to the senior paths that interest me. The [separate acquisition repository](https://github.com/Nacho9771/Data_Aquisition_Lab) is the intended home for the reviewed code. Try changing its employer list or title rules, then check whether the conclusions survive those choices.
