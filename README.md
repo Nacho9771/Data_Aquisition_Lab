@@ -1,93 +1,55 @@
-# Senior data careers across 152 companies
+# Data Aquisition Blog: Observation of Data Science and ML Positions
 
-STAT 386 Data Acquisition Blog project. The saved dataset contains **380 senior
-roles from 152 companies**, with **no more than five roles per company** and 42
-variables. Nothing has been pushed, published, or submitted to Canvas.
+STAT 386 Data Acquisition Blog. 300 distinct roles from 102 companies, all with detected numeric advertised pay, 53 variables, and at most five retained roles per normalized company. **Nothing has been pushed, published, or submitted.**
 
-## The four main files
+## Essential files
 
-| File | What to use it for |
-| --- | --- |
-| `project.py` | All Python: collection, cleaning, validation, summaries, and figures |
-| `blog.qmd` | Editable Quarto blog post |
-| `jobs.csv` | The collected and cleaned dataset; one row per retained internal role |
-| `README.md` | Instructions, methods, course references, and data definitions |
+| File | Purpose |
+|------------------------------------|------------------------------------|
+| `project.py` | All Python collection, cleaning, checks, summaries, and figures |
+| `blog.qmd` | Editable Quarto post |
+| `jobs.csv` | Finished 300-role dataset |
+| `README.md` | Instructions, methods, and data dictionary |
 
-`pyproject.toml` and `uv.lock` record the Python environment. `blog.html` is the
-rendered review copy. The `output` folder is generated: two PNG figures and one
-JSON file containing the statistical summaries. You do not need to edit those
-generated files by hand.
-
-The previous multi-file version and class materials are preserved privately under
-the ignored `.canvas-local` directory. Raw responses live in the ignored
-`.project-cache` directory. Neither private directory belongs in a public repository.
+`pyproject.toml` and `uv.lock` record the Python environment. `blog.html` is the self-contained review copy. `output/` contains two generated PNG figures and `results.json`; recreate these with the Python script before rendering Quarto. Private raw data, previous versions, and course downloads stay in ignored `.project-cache/` and `.canvas-local/` folders. Never upload those folders or credentials.
 
 ## Run the saved project
 
-From this folder in your terminal:
-
-```powershell
+``` powershell
 uv sync --locked
 uv run python project.py
 quarto render blog.qmd --to html
 ```
 
-The default Python command reads `jobs.csv`, checks the data, prints summaries,
-and makes the two figures. It does **not** contact Greenhouse. Open `blog.html`
-to review the rendered post. Quarto is installed separately from the Python packages.
+The default Python command reads the supplied CSV, validates it, and recreates all summaries and figures **without contacting Greenhouse**. Quarto is installed separately. Open `blog.html` to review the post. The download ZIP contains the four essential files, both Python environment files, `.python-version`, `.gitignore`, and the standalone HTML preview.
 
-To recreate the CSV from the saved private raw JSON on this computer:
+To clean the saved private raw snapshot again on this computer:
 
-```powershell
+``` powershell
 uv run python project.py --rebuild
 ```
 
-To deliberately collect a new snapshot:
+To resume the cached live salary search, or start a separate fresh search:
 
-```powershell
+``` powershell
 uv run python project.py --collect
+uv run python project.py --collect --fresh
 ```
 
-That last command makes live requests and can take a while. It backs up the previous
-raw file, reads the configured boards, and requests at most five full descriptions
-per normalized employer. It uses a three-second delay, a timeout, and no automatic
-retries. Access blocks, rate limits, and other request errors stop collection.
-Interrupted raw collections are marked incomplete so they cannot silently replace
-the finished CSV. New live results will change as vacancies change.
-After a new collection, update the numerical claims in `blog.qmd` to match the
-new `output/results.json` before publishing the post.
+Live collection can take substantial time. The fixed board order and selected IDs are saved before detail requests. At most five attempts per normalized company are allowed in the sampling cohort, including failures and nonqualifying descriptions; restarting never replaces them with extra roles. Requests are sequential with a three-second pause, timeouts, and no automatic retries. Access errors and rate limits stop the run. An unfinished search does not replace the finished CSV. Review any failure before resuming. A finished cached search needs no further job requests.
 
-The supplied CSV is sufficient to reproduce the published findings. The download
-bundle does not contain private raw responses; on another computer, `--rebuild`
-requires your own saved raw collection.
+The ZIP does not contain private raw responses: `--rebuild` on another computer requires its own raw collection. The supplied CSV reproduces the analysis directly. New collection results will change with vacancies. Update the blog's numerical claims from `output/results.json` after changing the data.
 
-## Read the code in this order
+## Read the code
 
-Start with `main()` at the bottom. It chooses between reading the existing CSV,
-cleaning the saved raw data, and starting a new collection.
-
-Then work through the numbered sections:
-
-1. **Settings:** the five-role cap, random seed, request delay, and board identifiers.
-2. **Text helpers:** clean markup, identify seniority and role families, find skill names.
-3. **Salary parsing:** accept only interpretable annual USD ranges.
-4. **Collection:** read title lists, select candidates, and retrieve their descriptions.
-5. **Cleaning:** make a list of row dictionaries, convert it to a DataFrame, and deduplicate.
-6. **Validation and EDA:** check the sample, calculate grouped summaries, and save plots.
-7. **Main:** run those steps in the intended order.
-
-The long board list is input data, not hundreds of different scraping rules.
-`posting_family_id` is just a stable fingerprint for identifying repeated text;
-it does not affect the main skill rankings. The salary and R-language patterns
-are the most specialized parts and have comments explaining their purpose.
+Start with `main()` at the bottom, then follow the numbered sections: settings, text helpers, pay parsing, collection, cleaning, validation/EDA, and the entry point. The code uses functions, loops, lists/dictionaries, requests/JSON, regular expressions, pandas filters/grouped summaries, and pandas/matplotlib plots. Caching and request accounting protect the company cap across interruptions.
 
 ## How this follows STAT 386
 
-The course materials were used as a guide to methods and organization, not as a
-source of job data or answers copied into this project.
+The course materials were used as a guide to methods and organization, not as a source of job data or answers copied into this project.
 
 | Course material reviewed | Connection to this code |
-| --- | --- |
+|------------------------------------|------------------------------------|
 | [Lab 3: pandas exploration](https://github.com/Stat386-Fall-2026/Lab_3/blob/main/lab_3.qmd) | `read_csv`, filtering, sorting, `value_counts`, summaries, derived variables |
 | [Lab 4: pandas patterns](https://github.com/Stat386-Fall-2026/Lab_4/blob/main/lab_4.qmd) | `groupby`, grouped means, text indicators, counts versus rates, pandas plots |
 | [Lab 5: cleaning pipelines](https://github.com/Stat386-Fall-2026/Lab_5/blob/main/lab_5.qmd) | Reusable functions, explicit regex rules, duplicate handling, preserved missing values, validation |
@@ -97,65 +59,49 @@ source of job data or answers copied into this project.
 | [Data acquisition slides in Canvas](https://byu.instructure.com/courses/38551/files/14105481) | HTTP/JSON, sequential polite requests, saved responses, request and population limits |
 | [Course syllabus](https://byu.instructure.com/courses/38551/assignments/syllabus) | Verify AI suggestions and be able to explain the final decisions |
 
-The five-role sampling rule, employer-name correction, and conservative salary
-parser are project-specific additions. They should not be described as exact
-copies of an in-class exercise. The current script's three-second delay follows
-the acquisition slides' starting guidance; the saved earlier collection used a
-half-second pause. No recollection was needed for this simplification.
+The company cap and pay parser are project-specific decisions. The expanded live collection uses a three-second pause between sequential requests.
 
-Useful checks for understanding: Why does the mean of a 0/1 skill indicator equal
-a mention rate? Why does equal-company weighting use two grouped means? Why does
-a missing salary remain missing? Which line limits the number of detail requests?
+Useful checks for understanding: Why does the mean of a 0/1 skill indicator equal a mention rate? Why does equal-company weighting use two grouped means? Why does a missing salary remain missing? Which line limits the number of detail requests?
 
 ## Methods and limits
 
-The original live collection was made November 5, 2026, America/Denver. A
-[CC0 public directory](https://github.com/moonie0201/ats-directory) supplied 382
-candidate board identifiers. The pinned source was `companies.jsonl`, Git blob
-`bf25fe8e74b67ccba6598b27d1b51199ae0114e1`. The list is incomplete and alphabetically
-limited. All job data came directly from the
-[Greenhouse Job Board API](https://docs.greenhouse.io/job-board.html).
+All job data were freshly obtained through the [Greenhouse Job Board API](https://docs.greenhouse.io/job-board.html). Public job reads require no API key. Candidate identifiers came from the [LastRound AI ATS company directory](https://github.com/fyrosofttech/lastroundai-hiring-data/tree/main/ats-directory), licensed CC BY 4.0, pinned at commit `2816bfadd65b7bbec23701dd036bcc7496c729db`. Credit: LastRound AI and its [salary-transparency study](https://lastroundai.com/blog/salary-transparency-study-2026). The script filters that directory to 4,966 Greenhouse boards. Historical live-board counts from [open-ats-feed](https://github.com/veresk06/open-ats-feed) guide visit order, with seed 386 breaking ties. These are discovery sources, not substitutes for freshly requested job descriptions. Cached copies preserve the actual discovery inputs used here. This prioritizes historically active boards.
 
-Of 382 boards, 374 returned title lists containing 23,951 metadata entries.
-The collector retrieved 418 full descriptions under the cap. Final title/content
-checks excluded 36 descriptions, and explicit language checks excluded two more,
-leaving 380 roles. The retained families are AI/ML (170), data engineering (68),
-data/business analytics (53), data science (49), applied/quantitative science (22),
-and analytics engineering/BI (18).
+**Request-history exceptions:** xai (5 attempts); wpp (5 attempts); fanaticscollectibles (3 attempts); vmlenterprisesolutions (4 attempts). The `xai` board identifies itself as SpaceXSI and its descriptions identify SpaceX. WPP Media identifies itself as WPP's operating unit. Fanatics Collectibles names Commerce and Collectibles as parts of the same Fanatics platform. These later boards were recognized as overlapping employers after their initial fetches. They are excluded entirely from the dataset, their historical requests are recorded separately in `excluded_boards`, and future runs skip them. The primary sampling manifest respects five attempts per normalized employer. The combined exploratory history includes these documented exceptions to the intended cap; it must not be described as obeying the cap without exception. The final CSV has no more than five roles per retained employer. VML/WPP Enterprise Solutions is also excluded after its published name revealed the WPP connection. Known DoorDash, Fanatics, SpaceX and WPP regional/unit names share a brand key and remaining request allowance, including when resuming cached boards. Other employer identities use normalized published names; this is not a complete corporate-ownership database.
 
-Seniority requires Senior/Sr., Staff, Principal, Lead, Distinguished, or relevant
-management/leadership wording. Junior, internship, and unmarked titles are excluded.
-Commercial AI roles and generic product/project management are outside this study.
-The API header “LinkedIn Job Wrapping” is corrected to Artefact based on that
-board's own company introduction.
+The search visited 278 boards and inspected 87,943 metadata entries. It attempted 617 descriptions and retained 596 responses in the primary cleaning cohort; the excluded duplicate board remains separately cached. Final title, content, language, duplicate, and pay checks found 303 eligible pay-disclosing roles across 102 companies. One role per contributing company is retained first, then remaining slots are filled reproducibly to 300. Company size in the final data ranges from one to 5 roles.
 
-All returned locations were eligible. The cap limits concentration; it does not
-make the directory a random or representative employer sample. Equal-company
-rates average skill indicators within each company and then average those rates.
-They are not the percentage of companies requiring a skill.
+Seniority requires explicit Senior/Sr., Staff, Principal, Lead, Distinguished, or relevant management/leadership wording. Junior/internship and unmarked titles are excluded. Families cover AI/ML, data science, data/business analytics, data engineering, analytics engineering/BI, and applied/quantitative science. Commercial AI and generic product/project management are excluded. Research scientists require machine-learning or data-science description evidence. Explicit non-English language records are excluded; unspecified language is retained. All locations are eligible. The Artefact board header is corrected using its own introduction. Role-family selection cycles alphabetically through available families before taking additional roles from a family. When more than five families are available, the five-request limit means not every family can be represented at that employer.
 
-Skill flags measure mentions, including possible boilerplate and alternative or
-preferred tools. They do not establish proficiency requirements. Missing descriptions
-produce missing flags. R matching excludes identifiers, R&D, R&R, and currency
-prefixes. Excel uses contextual patterns to avoid matching the verb “excel.”
+Skills are text mentions, not verified requirements. Boilerplate and preferred tools can count. R excludes R&D, R&R, R\$ and identifier patterns; Excel uses contextual wording to avoid the verb. Equal-company rates average within-company rates, then give those companies equal weight. They are not employer-requirement prevalence.
 
-Only 15 roles from seven companies have extractable annual USD pay under the
-conservative rule. Hourly pay and unspecified currencies/periods are not guessed.
-An annual upper bound below $1,000 is excluded as implausible; one source had $1–$2.
-Multiple qualifying ranges become an advertised envelope. Its midpoint is not actual
-pay. No skill has ten usable salaries in both comparison groups, so the post makes
-no salary-premium claim.
+Pay extraction prefers Greenhouse `pay_input_ranges` requested with `pay_transparency=true`; documented cents are divided by 100. Labeled currency ranges in descriptions provide a fallback. Numeric employer pay may have an unknown period or currency: reported values are retained unchanged. A dollar sign alone does not establish USD. No currency conversion or hourly annualization is used. An explicit annual range with an upper bound below 1,000 is excluded as implausible. Structured fields with one bound can establish disclosure, but not an annual midpoint.
+
+Primary currency counts: USD: 206, unspecified_dollar: 79, CAD: 13, EUR: 2. Primary period counts: unspecified: 217, year: 80, month: 2, hour: 1. There are 145 usable annual USD roles from 51 employers: 35 confirmed annual roles and 110 annual-pay inferences. Confirmed annual ranges are preferred; only when none are available does the script consider inference. Inference requires explicit USD, a recognizable US location, an unspecified period, two positive bounds between \$25,000 and \$1,000,000, and no conflicting hourly/daily/weekly/monthly pay wording. These thresholds are exploratory plausibility limits, not proof of an annual period. Generic remote locations and identified foreign/mixed locations do not qualify. Total-compensation ranges and incomplete or zero-width ranges are excluded. The reported `salary_period` remains unchanged; `annual_pay_basis` and `annual_pay_inference_rule` record the derived assumption separately. Multiple qualifying ranges become a low-to-high advertised envelope. Its midpoint is not observed earnings. No causal or salary-premium claim is made. Other posted pay stays in the dataset with its explicit attributes. Scopely's Senior Data Scientist, Marketing posting supplies structured annual USD bounds of \$17,100–\$253,000. These unusually broad employer-provided values are retained as reported, not silently repaired or treated as verified earnings.
+
+This is a purposive, salary-conditioned Greenhouse sample. Platform coverage, activity ordering, pay disclosure, title/language rules and the cap all affect it. It is not representative of all employers or senior salaries, and cannot estimate market-wide pay-disclosure rates. Automatic text extraction can miss formats.
+
+## Pay distribution figure
+
+`output/skill_frequency.png` compares skill mentions, and `output/salary_distributions.png` shows separate range-based normal mixtures by role family. `output/results.json` includes `salary_by_role`: role counts, employer counts, mean and median midpoints, confirmed/inferred counts, and whether a curve is shown. `annual_pay_inference` records the inference rule and bounds in that JSON file.
+
+The plot groups related titles into role families. Average pay means the unweighted mean of posting range midpoints, not the average of observed employee salaries. Multiple qualifying regional ranges first form one envelope for a posting.
+
+Each eligible posting supplies one normal curve with mean `(lower + upper) / 2` and standard deviation `(upper - lower) / 4`. The posted bounds therefore represent mean plus/minus two standard deviations, enclosing about 95% of the assumed curve. Normal tails extend beyond the advertised range. Curves are averaged with equal weight per posting within each family. This is a modelling assumption, not an empirical distribution of earnings or a confidence interval. Separate panels share dollar and density scales, show the number of confirmed and inferred observations, and mark the combined mean with an orange dashed line. Families with no usable ranges are omitted entirely; inadequate ranges never enter a plotted curve. The implementation uses the standard-library `math` module and existing matplotlib dependency, so no new packages are needed. The existing 300 posting IDs and raw pay values are unchanged; only derived annual-pay fields and summaries are updated.
 
 ## Data dictionary
 
 | Variables | Meaning |
-| --- | --- |
-| `job_id`, `role_id`, `greenhouse_post_id` | Board/post identifier, board/internal-role identifier, source post number |
+|------------------------------------|------------------------------------|
+| `job_id`, `role_id`, `greenhouse_post_id` | Board/post identifier, employer/internal-role identifier, source post number |
 | `title`, `company`, `board`, `company_key` | Published title and employer identity; normalized key shares the five-role allowance |
 | `location`, `all_locations`, `departments` | Location and department metadata among collected records |
 | `job_group`, `seniority`, `language` | Role family, title-based seniority tier, source language |
 | `updated_at`, `first_published`, `collected_at_utc` | Source and retrieval timestamps |
 | `source`, `source_url` | Greenhouse attribution and retained public posting link |
+| `salary_posted`, `salary_min`, `salary_max`, `salary_currency`, `salary_period` | Detected numeric pay, primary range bounds, explicit currency and period (unknown remains unknown) |
+| `salary_method`, `salary_kind`, `posted_range_count`, `posted_ranges` | Extraction method, pay definition, count and JSON representation of all detected ranges |
+| `annual_pay_basis`, `annual_pay_inference_rule` | Confirmed, inferred, or not comparable; the exact rule used when annual pay is inferred |
 | `salary_min_usd`, `salary_max_usd`, `annual_salary_midpoint_usd` | Annual USD envelope and midpoint, missing if not comparable |
 | `salary_range_count`, `salary_status` | Count of qualifying ranges and extraction status |
 | `description_characters`, `description_available` | Cleaned text length and availability indicator |
@@ -164,29 +110,3 @@ no salary-premium claim.
 | `mentions_aws`, `mentions_azure`, `mentions_gcp`, `mentions_cloud` | Platform mentions and broader cloud indicator |
 | `mentions_spark`, `mentions_excel`, `mentions_tableau`, `mentions_power_bi` | Other tracked tools |
 | `post_count_for_role`, `possible_repost`, `posting_family_id`, `posting_family_size` | Duplicate diagnostics among collected records |
-
-## Review and publication
-
-The intended code repository is
-[Data_Aquisition_Lab](https://github.com/Nacho9771/Data_Aquisition_Lab). The blog
-must ultimately be added to the separate
-[existing blog repository](https://github.com/Nacho9771/cgordon0.github.io), preserving
-the earlier tutorial. After review, copy this post there as `data-acquisition.qmd`,
-preserving the existing tutorial's `blog.qmd`. Copy the two generated figures and
-adjust their paths, then add the new post to the site's render list and navigation. No second website
-is needed. Actual GitHub pushes, publication, and Canvas submission remain pending.
-
-The small derived CSV excludes full advertisement narratives and applicant data.
-Review source terms and instructor guidance before releasing data. Public access
-does not grant an unrestricted license to republish advertisements. Keep all raw
-responses, credentials, course downloads, and private review archives out of Git.
-
-Canvas's recorded due date is November 6 at 11:59 p.m. Mountain time, although the
-assignment description says November 10. Use the earlier date for planning.
-
-## AI assistance and verification
-
-Codex assisted with acquisition code, analysis, drafting, and this consolidation.
-The combined script was checked against the saved raw snapshot and the previous
-dataset and summaries. Connor's review and ability to explain the code remain
-important parts of the course's stated approach to AI collaboration.

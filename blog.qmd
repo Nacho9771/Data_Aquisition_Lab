@@ -1,8 +1,8 @@
 ---
-title: "Senior data careers across 152 companies"
-subtitle: "Curating Greenhouse postings with a five-role cap per employer"
+title: "Data Aquisition Blog: Observation of Data Science and ML Positions"
+subtitle: "Required Technical Skills of Current Open Positions and Their Respective Salaries"
 author: "Connor Gordon"
-date: "2026-11-05"
+date: "2026-11-06"
 format:
   html:
     toc: true
@@ -12,82 +12,82 @@ format:
     code-copy: true
 ---
 
-::: callout-note
-## Private review copy
+## Which technical skills are connected with senior level data positions?
 
-These are real results from a fresh collection. This copy has not been published, and the linked repository still needs the reviewed local changes uploaded.
-:::
+As a "Statistics: Data Science" student at BYU, I want to connect the tools I learn with possible career paths. Browsing many openings from one large company gives a bit of a narrow impression of skills I need to have to apply. This prompted me to ask myself: which technical skills appear in senior AI, machine learning, data science, and analytics roles across most employers, and is their a connection between these skills and higher paying positions? This blog will explore the salaries and necessary skills of Data Scientists, Machine Learning/AI Engineers, and other data-related roles.
 
-## What skills should I build toward?
+## Data Overview and API Details
 
-As a Statistics: Data Science student at BYU, I want to understand how the tools I learn connect to the kinds of jobs I might pursue later. Looking at a few large employers can give a narrow picture, especially when one company advertises many similar positions. I wanted a broader view of senior technical and analytical work.
+I decided to scrape the internet and also use the [public Greenhouse Job Board API](https://docs.greenhouse.io/job-board.html), as this source would give me free access to the information needed and wouldn't require a monthly subscription like other services. A [LastRound AI directory](https://github.com/fyrosofttech/lastroundai-hiring-data/tree/main/ats-directory) supplied 4,966 candidate Greenhouse boards across the alphabet - its directory is licensed, and credit also goes to the directory's [salary-transparency study](https://lastroundai.com/blog/salary-transparency-study-2026). I got the historical live job board counts from this [open-ats-feed](https://github.com/veresk06/open-ats-feed). I should mention that I did not get any job description from directories - those came from the available Greenhouse web scrapes. The most historically active job boards were visited first and scraped.
 
-My question was: **Which skills appear in senior AI, machine learning, data science, and analytics roles across many companies?** I also wanted to explore advertised pay, if the postings provided enough comparable information. The goal was a useful learning roadmap, rather than a claim that one technology guarantees a job or salary.
+## Breadth of Data Aquisition
 
-## More companies, fewer roles from each
+The data consists of over 300 job descriptions with over 100 different companies represented in the dataset. I only allowed five samples from each company (including failures and descriptions without pay) as to not inflate the data pool with one company and their requirements.
 
-I used the [public Greenhouse Job Board API](https://docs.greenhouse.io/job-board.html) and a [public-domain employer directory](https://github.com/moonie0201/ats-directory) to identify 382 candidate boards. The directory supplied board identifiers, not the job data. I freshly requested the job listings from Greenhouse, where public job reads require no API key.
+I first requested its title list without description content to make the search faster, then I removed repeated internal role IDs and selected across role families before adding more from a family, checking for employerIDs and saved IDs as to prevent restarts from replacing unsuccessful selections. After review of my web scraping I found that there were some overlapping roles in companies such as xai, wpp, fanaticscollectibles, and vmlenterprisesolutions. I decided to exclude those later job boards entirely, preserved their requests in the audit history, and blocked future requests there to keep the final sample count below five.
 
-To prevent one employer from overwhelming the dataset, I set a **hard limit of five full role descriptions per company**. The script first reads each board's title list without requesting description content. It filters for relevant titles and explicit seniority, removes repeated internal role IDs, then selects across role families before collecting extra roles from a family. A fixed seed of 386 makes selection repeatable for the same title list. Normalized employer names share the five-description allowance even across different boards.
-
-The basic API workflow is straightforward:
+This excerpt shows the basic function for obtaining the json object of the job boards:
 
 ``` python
-import requests
-
-base = "https://boards-api.greenhouse.io/v1/boards/abacusinsights/jobs"
-listing = requests.get(base, timeout=30)
-listing.raise_for_status()
-titles = listing.json()["jobs"]
-
-# Filter and choose at most five distinct senior roles before requesting details.
+# These IDs were selected and saved before requesting details.
+for job_id in cache["planned_ids"]:
+    detail_url = (
+        f"https://boards-api.greenhouse.io/v1/boards/{board}/jobs/{job_id}"
+        "?pay_transparency=true"
+    )
+    detail = get_json(session, detail_url)
 ```
 
-“Senior” means Senior/Sr., Staff, Principal, Lead, Distinguished, or relevant management/leadership wording in the title. Internships, junior positions, and titles without a clear senior marker are excluded. Commercial AI positions such as sales partnerships and product management are also excluded. I do not infer seniority from salary or assume that an unmarked title is senior.
+The complete workflow is in `project.py` and is much more complex. I wanted to search for senior positions for the sake of avoiding bias, so I searched for key phrases Senior/Sr., Staff, Principal, Lead, Distinguished, or relevant management/leadership wording while explicitly rejecting internship and junior positions. Research-scientist titles also need machine-learning or data-science evidence in their descriptions.
 
-Of 382 boards, 374 returned title lists and eight were unavailable. The lists contained 23,951 post entries; these were metadata inspected for selection, not 23,951 collected descriptions. I retrieved **418 descriptions** under the cap. Final title/content and language checks retained **380 roles from 152 companies**, with **42 variables**. Sixty-two companies contribute one role, while 33 contribute five; the remaining 57 contribute two to four. Every retained role has a description.
+The search inspected 278 boards containing 87,943 metadata entries, and attempted 617 descriptions. Metadata entries are not collected descriptions. Cleaning found 303 qualifying salary-disclosing roles across 102 companies. I retained one role per contributing company first, then filled the count of job listings to 300 with 53 variables and a maximum of 5 roles per company.
 
-## Adjacent careers are part of the picture
+## Related careers have different tools
 
-The role rules include data engineering, analytics engineering/BI, business and product analytics, and applied or quantitative science. Research-scientist titles need machine-learning, deep-learning, or data-science evidence in the description. These are related career paths with different skill mixes, so I keep them separate.
+| Role family                    | Retained roles |
+|--------------------------------|---------------:|
+| Machine learning / AI          |            113 |
+| Data engineering               |             57 |
+| Data / business analytics      |             54 |
+| Data science                   |             50 |
+| Applied / quantitative science |             14 |
+| Analytics engineering / BI     |             12 |
 
-| Role family                    | Sampled roles |
-|--------------------------------|--------------:|
-| Machine learning / AI          |           170 |
-| Data engineering               |            68 |
-| Data / business analytics      |            53 |
-| Data science                   |            49 |
-| Applied / quantitative science |            22 |
-| Analytics engineering / BI     |            18 |
+The related families include data engineering, analytics engineering/BI, business analytics, and applied or quantitative science. Common exact titles include Senior Data Scientist (6 roles, 6 employers); Staff Data Scientist (5 roles, 5 employers); Senior Data Engineer (4 roles, 4 employers).
 
-Frequent exact titles include **Senior Machine Learning Engineer** (13 roles across 12 companies), **Senior Data Engineer** (12 across 12), and **Senior Data Scientist** (11 across nine). Senior Business Analyst, Staff Data Analyst, Lead Data Engineer, and Senior Analytics Engineer also appear. The seniority breakdown is 193 Senior, 111 Staff/Principal/Lead, 50 management, and 26 leadership roles.
+After decoding HTML, I used explicit text patterns for 13 skills. The following bar chart demonstrates the frequency of mentions of each skill in all of the job postings by percentage. It is split up into two averages - one by keeping all of the role titles constant (without giving a ton of weight to the most frequent role, Mcahine Learning Engineer), and the other keeping the companies constant (to avoid bias of five open roles in one company vs one open role in another).
 
-## Python and SQL remain useful foundations
+![Skill mention rates with equal weight per role and equal weight per company.](output/skill_frequency.png)
 
-After decoding HTML, I used word-boundary patterns to detect skill mentions. Special handling avoids counting `R&D`, `R$`, or an identifier like `R-00196320` as the R language. A mention can be required, preferred, or part of company boilerplate; the indicators do not distinguish those cases.
+The most popular technical skills seem to be Python, then cloud computing skills, then SQL. Cloud includes AWS, Azure, GCP, or the word “cloud,” so these indicators overlap and the variable "CLOUD" should be considered as a sum of these associated skills. Averaging within each company and then across companies gives Python 67.7%, SQL 47.4%, and cloud 50.7%. The blue weighs each job posting equally and the gold weighs each company - comparing both summaries helps us understand how repeated roles influence the overall picture, as they are about equal.
 
-**Python appeared in 248 roles (65.3%)**, cloud terminology or platforms in 208 (54.7%), SQL in 164 (43.2%), and AWS in 117 (30.8%). Cloud is a broad indicator that includes AWS, Azure, GCP, or the word “cloud,” so those categories overlap.
+## Analysis of Pay Scale by Role
 
-![Skill frequencies comparing equal weight for each sampled role with equal weight for each company. Python, cloud, and SQL lead both summaries.](output/skill_frequency.png)
+I summarized each posting's annual USD range by a fabricated normal curve, then averaged those distributions within a role family. Forr example, if a role included "Pay Scale: 100k-150k," then I created a normal curve around a mean = 125k. Exact titles each occur once in this subset, so I grouped related titles that had enough data to them:
 
-A five-role cap limits concentration but does not make company contributions identical. I therefore also average the skill-mention rate within each company, then give those 152 company averages equal weight. Python becomes **63.9%**, cloud **57.6%**, and SQL **41.2%**. Their ordering stays the same. This is an average within-company rate, not the percentage of employers requiring the skill.
+![Advertised annual USD midpoint distributions by role family, with observed values and group averages.](output/salary_distributions.png)
 
-The role-family comparisons are more informative than one overall ranking. SQL appears in **94.4% of analytics engineering/BI roles**, 77.6% of data science roles, and 62.3% of data/business analytics roles. Cloud appears in 89.7% of data engineering roles. PyTorch appears in 15.3% of the AI/ML group, compared with 8.2% of data science roles. For me, that suggests pairing a common foundation with tools tied to a target career rather than treating every data job as the same job.
+Teal curves smooth the observed normal distributions using a calculated standard deviation according to the size of the pay range (they do not assume one bell curve) and the orange dashed lines show group averages. The salaries for the majority of these observations were assumed to be annual, although we had to assume this for a lot of postings (the annual pay is explicit for 35 postings and inferred for 110). Therefore, these graphs are for illustrative purposes only.
 
-## Why I stopped short of salary premiums
+| Role family | Comparable postings | Mean advertised midpoint, rounded |
+|-----------------------|--------------------:|---------------------------:|
+| Machine learning / AI | 54 | \$233,000 |
+| Data science | 24 | \$205,000 |
+| Data / business analytics | 31 | \$161,000 |
+| Data engineering | 23 | \$232,000 |
+| Analytics engineering / BI | 7 | \$174,000 |
+| Applied / quantitative science | 6 | \$235,000 |
 
-I retained pay ranges only when the text explicitly indicated USD and an annual salary/pay period. Hourly wages were not converted, and an implausible annual range below \$1,000 was treated as unusable. One posting actually supplied \$1–\$2, showing why a numeric field still needs validation. Multiple qualifying regional ranges become a lowest-to-highest envelope for the retained description.
+In this sample, average midpoints are about \$161,000 for data/business analytics, \$233,000 for AI/ML, and \$232,000 for data engineering. Data science averages \$205,000 across 24 postings. Applied and quantitative science has the highest average at about \$235,000, based on six postings whose annual periods were all inferred. (Location, employer mix, and seniority may contribute to these differences and was not analyzed as a factor. Further analysis of these variables would make this data available for statistical inference).
 
-Only **15 roles from seven companies** passed these checks. Their median range midpoint was **\$245,000**, with a middle 50% from \$166,000 to \$317,000. These are advertised range summaries, not actual earnings or typical senior-market pay.
+The salary comparison uses 145 postings from 51 employers that met the annual USD range criteria, but the annual period was only confirmed for 35 postings and inferred for the rest of the 110. When a posting has several qualifying regional ranges, the analysis uses the lowest lower bound and highest upper bound. The published \$17,100–\$253,000 range is included as reported.
 
-![Salary coverage by role family, showing that only a small portion of sampled roles had extractable annual USD ranges.](output/salary_coverage.png)
+## Limits and Conclusion
 
-No tracked skill had at least ten usable salary observations in both comparison groups. I therefore omitted the salary-by-skill chart. Reporting a convincing-looking “Python premium” from those small groups would overstate what this dataset supports. Missing comparable pay also does not mean the employer omitted pay entirely: other currencies, unstated periods, and unrecognized formats remain outside this analysis.
+Some limits and bias may be caused by using greenhouse as a source for data - coverage, historical board activity, salary disclosure, title rules, and the five-role cap from greenhouse all shape this sample. Even though we weighted it equally by company, there's only so much we can do in order to avoid potential biases, and this analysis only officially applies to the data I collected and not the general population of data roles.
 
-## What this sample can tell me
+My HTML requests are sequential with a three-second pause, timeouts, local caching, and no automatic retries, and access errors or rate limits stopped my data collection occasionally. All data collection and publication is coherent with the API Terms of Use, and I did not violate any of the warnings taught in STAT 386 which include avoiding applicant data and private endpoints.
 
-I used documented public endpoints, spaced requests, stopped on rate limits, and cached responses. No applicant information or private API was accessed. The derived CSV omits full descriptions and retains source links and retrieval times. Public access does not grant an unrestricted license to republish advertisements, so raw responses remain local and dataset sharing still needs review.
+My practical analysis of the data is that there are many different pay ranges for data related roles in the job market. According to the data scraped in this blog, if you want a concentrated salary \>= 200k and a field with a lot of openings, follow Machine Learning Engineering or Data Science roles, and learn Python and its ML packages, SQL, Cloud software, and visualization software. Data/Business Analytics roles offer less of a variance in salary, but also cap out at a lower pay. Data engineers and Quantitative Scientists can make a lot of money, but these roles are more niche and may be harder to get into. Overall, this is a great field to start in and it has an even better upside in late career roles.
 
-The directory is incomplete and its Greenhouse cohort is alphabetically limited. All returned locations were eligible, and the title rules deliberately exclude unclear seniority. The cap and equal-company check reduce concentration; they do not remove industry, platform, geographic, or selection bias.
-
-My next step is to build stronger Python/SQL foundations and explore cloud and engineering tools relevant to the senior paths that interest me. The [separate acquisition repository](https://github.com/Nacho9771/Data_Aquisition_Lab) is the intended home for the reviewed code. Try changing its employer list or title rules, then check whether the conclusions survive those choices.
+The Python code and instructions are available in the [Data Acquisition project repository](https://github.com/Nacho9771/Data_Aquisition_Lab).
