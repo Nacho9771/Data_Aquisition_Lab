@@ -18,7 +18,7 @@ As a "Statistics: Data Science" student at BYU, I want to connect the tools I le
 
 ## Data Overview and API Details
 
-I decided to scrape the internet and also use the [public Greenhouse Job Board API](https://docs.greenhouse.io/job-board.html), as this source would give me free access to the information needed and wouldn't require a monthly subscription like other services. A [LastRound AI directory](https://github.com/fyrosofttech/lastroundai-hiring-data/tree/main/ats-directory) supplied 4,966 candidate Greenhouse boards across the alphabet - its directory is licensed, and credit also goes to the directory's [salary-transparency study](https://lastroundai.com/blog/salary-transparency-study-2026). I got the historical live job board counts from this [open-ats-feed](https://github.com/veresk06/open-ats-feed). I should mention that I did not get any job description from directories - those came from the available Greenhouse web scrapes. The most historically active job boards were visited first and scraped.
+I used the [public Greenhouse Job Board API](https://docs.greenhouse.io/job-board.html) to collect job descriptions. Greenhouse documents that the public GET endpoints require no API key and lists no request quota in the Job Board API documentation. A [LastRound AI directory](https://github.com/fyrosofttech/lastroundai-hiring-data/tree/main/ats-directory) supplied 4,966 candidate Greenhouse boards across the alphabet - its directory is licensed, and credit also goes to the directory's [salary-transparency study](https://lastroundai.com/blog/salary-transparency-study-2026). I got the historical live job board counts from this [open-ats-feed](https://github.com/veresk06/open-ats-feed). The most historically active job boards were visited first.
 
 ## Breadth of Data Aquisition
 
@@ -55,19 +55,23 @@ The search inspected 278 boards containing 87,943 metadata entries, and attempte
 
 The related families include data engineering, analytics engineering/BI, business analytics, and applied or quantitative science. Common exact titles include Senior Data Scientist (6 roles, 6 employers); Staff Data Scientist (5 roles, 5 employers); Senior Data Engineer (4 roles, 4 employers).
 
-After decoding HTML, I used explicit text patterns for 13 skills. The following bar chart demonstrates the frequency of mentions of each skill in all of the job postings by percentage. It is split up into two averages - one by keeping all of the role titles constant (without giving a ton of weight to the most frequent role, Mcahine Learning Engineer), and the other keeping the companies constant (to avoid bias of five open roles in one company vs one open role in another).
+After decoding HTML, I used explicit text patterns for 13 skills. The blue bars show the percentage of individual postings that mention each skill, counting every posting equally. For the gold bars, I calculate the percentage within each company first, then average those percentages so every company counts equally. A company with five postings has five times the weight of a company with one in the blue bars and the same weight in the gold bars.
 
-![Skill mention rates with equal weight per role and equal weight per company.](output/skill_frequency.png)
+![Skill mention rates with equal weight per posting and equal weight per company.](output/skill_frequency.png)
 
-The most popular technical skills seem to be Python, then cloud computing skills, then SQL. Cloud includes AWS, Azure, GCP, or the word “cloud,” so these indicators overlap and the variable "CLOUD" should be considered as a sum of these associated skills. Averaging within each company and then across companies gives Python 67.7%, SQL 47.4%, and cloud 50.7%. The blue weighs each job posting equally and the gold weighs each company - comparing both summaries helps us understand how repeated roles influence the overall picture, as they are about equal.
+The most popular technical skills seem to be Python, then cloud computing skills, then SQL. A posting counts toward “cloud” if it mentions AWS, Azure, GCP, or the word “cloud.” Averaging within each company and then across companies gives Python 67.7%, SQL 47.4%, and cloud 50.7%.
 
 ## Analysis of Pay Scale by Role
 
-I summarized each posting's annual USD range by a fabricated normal curve, then averaged those distributions within a role family. Forr example, if a role included "Pay Scale: 100k-150k," then I created a normal curve around a mean = 125k. Exact titles each occur once in this subset, so I grouped related titles that had enough data to them:
+The salary comparison uses 145 postings from 51 employers. Employers supplied the dollar bounds in each posting. The only inference was whether the pay period was annual, using information from that same posting. For 35 postings the annual period was explicit. For the other 110, I treated an unspecified period as annual if the posting specified USD, listed a recognizable U.S. location, had both bounds between \$25,000 and \$1,000,000, and contained no conflicting pay-period wording. The bounds screen for plausible annual ranges and can favor higher ranges by excluding amounts below the cutoff.
 
-![Advertised annual USD midpoint distributions by role family, with observed values and group averages.](output/salary_distributions.png)
+When a posting lists several qualifying regional ranges, I use the lowest lower bound and highest upper bound. The published \$17,100–\$253,000 range is included as reported because the annual period was explicit.
 
-Teal curves smooth the observed normal distributions using a calculated standard deviation according to the size of the pay range (they do not assume one bell curve) and the orange dashed lines show group averages. The salaries for the majority of these observations were assumed to be annual, although we had to assume this for a lot of postings (the annual pay is explicit for 35 postings and inferred for 110). Therefore, these graphs are for illustrative purposes only.
+For each posting, I model the advertised range with a normal curve centered on its midpoint. A \$100,000–\$150,000 range gives a midpoint of \$125,000 and a standard deviation of \$12,500, one-quarter of the range width. The teal curves average these models with equal weight per posting, and the orange dashed lines show the mean of the posting midpoints. These curves illustrate advertised pay under the annual-period assumption. The model can extend past the posted bounds.
+
+![Modeled distributions of advertised annual USD pay for role families with at least 10 comparable postings.](output/salary_distributions.png)
+
+I used a minimum of 10 comparable postings to show a curve. Analytics engineering / BI and applied / quantitative science have 7 and 6 comparable postings, respectively, so their counts and averages appear only in the table.
 
 | Role family | Comparable postings | Mean advertised midpoint, rounded |
 |-----------------------|--------------------:|---------------------------:|
@@ -78,16 +82,14 @@ Teal curves smooth the observed normal distributions using a calculated standard
 | Analytics engineering / BI | 7 | \$174,000 |
 | Applied / quantitative science | 6 | \$235,000 |
 
-In this sample, average midpoints are about \$161,000 for data/business analytics, \$233,000 for AI/ML, and \$232,000 for data engineering. Data science averages \$205,000 across 24 postings. Applied and quantitative science has the highest average at about \$235,000, based on six postings whose annual periods were all inferred. (Location, employer mix, and seniority may contribute to these differences and was not analyzed as a factor. Further analysis of these variables would make this data available for statistical inference).
-
-The salary comparison uses 145 postings from 51 employers that met the annual USD range criteria, but the annual period was only confirmed for 35 postings and inferred for the rest of the 110. When a posting has several qualifying regional ranges, the analysis uses the lowest lower bound and highest upper bound. The published \$17,100–\$253,000 range is included as reported.
+Among the four plotted families, mean midpoints range from about \$161,000 for data/business analytics to \$233,000 for AI/ML. Location, employer mix, and seniority may contribute to these differences. I did not adjust for those factors.
 
 ## Limits and Conclusion
 
 Some limits and bias may be caused by using greenhouse as a source for data - coverage, historical board activity, salary disclosure, title rules, and the five-role cap from greenhouse all shape this sample. Even though we weighted it equally by company, there's only so much we can do in order to avoid potential biases, and this analysis only officially applies to the data I collected and not the general population of data roles.
 
-My HTML requests are sequential with a three-second pause, timeouts, local caching, and no automatic retries, and access errors or rate limits stopped my data collection occasionally. All data collection and publication is coherent with the API Terms of Use, and I did not violate any of the warnings taught in STAT 386 which include avoiding applicant data and private endpoints.
+I used public, read-only requests and avoided applicant data and private endpoints. The script sends one request at a time, pauses for three seconds after each response, and uses a 30-second timeout and a local cache. An HTTP 429 response (Too Many Requests) or an access block stops the run without an automatic retry.
 
-My practical analysis of the data is that there are many different pay ranges for data related roles in the job market. According to the data scraped in this blog, if you want a concentrated salary \>= 200k and a field with a lot of openings, follow Machine Learning Engineering or Data Science roles, and learn Python and its ML packages, SQL, Cloud software, and visualization software. Data/Business Analytics roles offer less of a variance in salary, but also cap out at a lower pay. Data engineers and Quantitative Scientists can make a lot of money, but these roles are more niche and may be harder to get into. Overall, this is a great field to start in and it has an even better upside in late career roles.
+For my own career planning, Python, cloud tools, and SQL are good places to focus because they came up often in these postings. The advertised ranges also give me a starting point for comparing senior roles. In this sample, machine learning / AI, data engineering, and data science had higher average advertised midpoints than data / business analytics.
 
 The Python code and instructions are available in the [Data Acquisition project repository](https://github.com/Nacho9771/Data_Aquisition_Lab).

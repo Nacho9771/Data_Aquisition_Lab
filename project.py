@@ -37,6 +37,7 @@ import matplotlib.pyplot as plt
 MAX_ROLES = 5
 SEED = 386
 REQUEST_DELAY = 3  # Seconds; the course recommends one request every few seconds.
+MIN_SALARY_PLOT_POSTINGS = 10
 RAW_PATH = ROOT / ".project-cache/raw_jobs.json"
 DATA_PATH = ROOT / "jobs.csv"
 OUTPUT = ROOT / "output"
@@ -710,16 +711,22 @@ def plot_pay_distributions(jobs):
     comparable = comparable.loc[valid]
     comparable["range_mean"] = (comparable["salary_min_usd"] + comparable["salary_max_usd"]) / 2
     comparable["range_sd"] = (comparable["salary_max_usd"] - comparable["salary_min_usd"]) / 4
-    families = [name for name in order if comparable["job_group"].eq(name).any()]
-    far_tail = (comparable["range_mean"] + 4 * comparable["range_sd"]).max()
-    right_edge = math.ceil(far_tail / 100000) * 100 if len(comparable) else 500
+    groups = comparable.groupby("job_group")
+    counts = groups.size()
+    families = [name for name in order if counts.get(name, 0) >= MIN_SALARY_PLOT_POSTINGS]
+    plotted = comparable.loc[comparable["job_group"].isin(families)]
+    far_tail = (plotted["range_mean"] + 4 * plotted["range_sd"]).max()
+    right_edge = math.ceil(far_tail / 100000) * 100 if families else 500
     grid = list(range(0, int(right_edge) + 1))
     rows = max(1, math.ceil(len(families) / 2))
     fig, axes = plt.subplots(rows, 2, figsize=(12, 3 * rows + 2), sharex=True, sharey=True, squeeze=False)
     summary, legend_handles = [], {}
     maximum_density = 0
-    for family, ax in zip(families, axes.flat):
-        group = comparable.loc[comparable["job_group"] == family]
+    panels = dict(zip(families, axes.flat))
+    for family in order:
+        if family not in counts:
+            continue
+        group = groups.get_group(family)
         confirmed_count = int(group["annual_pay_basis"].eq("confirmed").sum())
         inferred_count = int(group["annual_pay_basis"].eq("inferred").sum())
         mean = float(group["range_mean"].mean())
@@ -728,7 +735,10 @@ def plot_pay_distributions(jobs):
                         "employers": int(group["company_key"].nunique()),
                         "mean_midpoint_usd": mean,
                         "median_midpoint_usd": float(group["range_mean"].median()),
-                        "curve_shown": True})
+                        "curve_shown": family in panels})
+        if family not in panels:
+            continue
+        ax = panels[family]
         all_curves = []
         for _, posting in group.iterrows():
             curve = normal_curve_from_range(posting["salary_min_usd"] / 1000,
@@ -749,14 +759,15 @@ def plot_pay_distributions(jobs):
         ax.spines[["top", "right", "left"]].set_visible(False)
     for index, ax in enumerate(axes.flat):
         if index >= len(families):
-            fig.delaxes(ax)  # Do not display a panel for an incomplete/empty family.
+            fig.delaxes(ax)
             continue
         ax.set_xlim(0, right_edge)
         ax.set_ylim(0, max(maximum_density * 1.2, 0.001))
         ax.set_xticks(range(0, int(right_edge) + 1, 100))
         ax.tick_params(axis="x", labelbottom=True)
     if not families:
-        fig.text(0.5, 0.5, "No complete annual USD ranges are available", ha="center")
+        fig.text(0.5, 0.5, f"No role family has {MIN_SALARY_PLOT_POSTINGS} comparable postings",
+                 ha="center")
     fig.suptitle("Range-based pay distributions by senior role family", fontsize=17, y=0.98)
     fig.text(0.5, 0.94, "Each posting: mean = midpoint; SD = (upper - lower) / 4", ha="center", fontsize=11)
     if legend_handles:
@@ -785,9 +796,9 @@ def analyze_jobs(jobs):
     # The mean of a 0/1 indicator is the fraction of roles mentioning that skill.
     role_rates = described[skills].mean() * 100
     company_rates = described.groupby("company_key")[skills].mean().mean() * 100
-    frequency = pd.DataFrame({"Each role equal": role_rates,
+    frequency = pd.DataFrame({"Each posting equal": role_rates,
                               "Each company equal": company_rates})
-    frequency = frequency.sort_values("Each role equal")
+    frequency = frequency.sort_values("Each posting equal")
     labels = []
     for name in frequency.index:
         labels.append(name.replace("mentions_", "").replace("_", " ").upper())
@@ -840,7 +851,7 @@ def analyze_jobs(jobs):
                                  "mean": "(lower + upper) / 2",
                                  "standard_deviation": "(upper - lower) / 4",
                                  "range_interpretation": "mean plus or minus two standard deviations",
-                                 "minimum_components": 1,
+                                 "minimum_components": MIN_SALARY_PLOT_POSTINGS,
                                  "eligible_roles": sum(item["roles"] for item in salary_by_role)},
         "annual_pay_inference": {"currency": "explicit USD only", "location": "US locations only",
                                  "minimum_lower_bound": INFER_ANNUAL_MIN,
@@ -856,7 +867,7 @@ def analyze_jobs(jobs):
     print(f"Validated {len(jobs)} senior roles from {jobs['company_key'].nunique()} companies.")
     print("Maximum roles per company:", jobs.groupby("company_key").size().max())
     print("\nRole counts:\n", jobs["job_group"].value_counts().to_string())
-    print("\nSkill percentages:\n", frequency.sort_values("Each role equal", ascending=False).round(1).to_string())
+    print("\nSkill percentages:\n", frequency.sort_values("Each posting equal", ascending=False).round(1).to_string())
     confirmed_count = int(jobs["annual_pay_basis"].eq("confirmed").sum())
     inferred_count = int(jobs["annual_pay_basis"].eq("inferred").sum())
     print(f"\nAnnual USD ranges: {len(salary)} ({confirmed_count} confirmed, {inferred_count} inferred)")
